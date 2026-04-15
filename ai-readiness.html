@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Infrastructure Reality Assessment — Executive Diagnostic</title>
+  <style>
+    :root {
+      --bg: #fcfbf8;
+      --bg-2: #f7f4ee;
+      --panel: #ffffff;
+      --panel-2: #fdfbf7;
+      --line: #e7dfd1;
+      --line-2: #d7cbb7;
+      --text: #171717;
+      --muted: #6c6c6c;
+      --gold-1: #8d6214;
+      --gold-2: #c9962e;
+      --gold-3: #efd890;
+      --gold-soft: #fbf4e4;
+      --blue: #567bb3;
+      --blue-soft: #eef4fb;
+      --green: #2d8a59;
+      --green-soft: #edf7f1;
+      --amber: #a86d17;
+      --amber-soft: #fbf3e6;
+      --red: #ad4d4d;
+      --red-soft: #faeeee;
+      --shadow: 0 18px 44px rgba(25, 25, 25, 0.06);
+      --radius: 24px;
+      --radius-sm: 16px;
+      --max: 1360px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    .shell { max-width: var(--max); margin: 0 auto; padding: 28px 20px 72px; }
+
+    .hero {
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      padding: 40px;
+      background: linear-gradient(180deg, #ffffff 0%, #fcfaf6 100%);
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+
+    .eyebrow {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--muted);
+      margin-bottom: 14px;
+      font-weight: 600;
+    }
+
+    h1 {
+      margin: 0 0 18px;
+      font-size: clamp(32px, 5vw, 64px);
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      font-weight: 800;
+    }
+
+    .gold {
+      background: linear-gradient(90deg, var(--gold-1), var(--gold-2), var(--gold-3));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-copy {
+      max-width: 800px;
+      color: #4e4e4e;
+      font-size: 19px;
+      line-height: 1.7;
+      margin-bottom: 24px;
+    }
+
+    .grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px; align-items: start; }
+    .left-stack { display: grid; gap: 24px; }
+
+    .panel, .result-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-head { padding: 32px 32px 20px; border-bottom: 1px solid var(--line); }
+    .panel-head h2 { margin: 0; font-size: 26px; letter-spacing: -0.5px; }
+    .panel-note { margin: 10px 0 0; color: var(--muted); font-size: 15px; max-width: 600px; }
+
+    .panel-body { padding: 10px 32px 32px; }
+    .question { padding: 24px 0; border-bottom: 1px solid #f1ebe1; }
+    .question:last-child { border-bottom: 0; }
+    .question-title { margin: 0 0 8px; font-size: 17px; font-weight: 700; }
+    .question-help { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+
+    .options { display: flex; gap: 12px; flex-wrap: wrap; }
+    .choice { position: relative; }
+    .choice input { position: absolute; opacity: 0; }
+    .choice label {
+      display: inline-flex;
+      padding: 12px 18px;
+      border-radius: 999px;
+      border: 1px solid var(--line-2);
+      background: #fff;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .choice input:checked + label {
+      border-color: var(--gold-2);
+      background: var(--gold-soft);
+      font-weight: 700;
+    }
+
+    .btn {
+      border: 0; padding: 16px 28px; border-radius: 999px; cursor: pointer;
+      font-weight: 700; font-size: 15px; transition: 0.2s;
+    }
+    .btn-primary { 
+      background: linear-gradient(90deg, var(--gold-1), var(--gold-2)); 
+      color: white; 
+      box-shadow: 0 8px 20px rgba(141, 98, 20, 0.2);
+    }
+    .btn-secondary { background: #fff; border: 1px solid var(--line); color: var(--text); }
+    .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+    /* Results UI */
+    .results { position: sticky; top: 24px; }
+    .result-top { padding: 32px; border-bottom: 1px solid var(--line); }
+    .result-kicker { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    .result-title { margin: 0; font-size: 28px; }
+    .result-body { padding: 32px; }
+
+    .gauge-box { text-align: center; margin-bottom: 32px; }
+    .gauge { width: 160px; height: 160px; margin: 0 auto; position: relative; }
+    .gauge svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+    .gauge-bg { fill: none; stroke: #efe8dc; stroke-width: 8; }
+    .gauge-fill { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dasharray 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+    .gauge-center { position: absolute; inset: 0; display: grid; place-content: center; }
+    .gauge-number { font-size: 38px; font-weight: 800; letter-spacing: -1px; }
+
+    .band {
+      display: inline-block; padding: 8px 16px; border-radius: 999px;
+      font-weight: 700; font-size: 14px; margin-bottom: 20px;
+    }
+    .band-red { background: var(--red-soft); color: var(--red); border: 1px solid #efcaca; }
+    .band-amber { background: var(--amber-soft); color: var(--amber); border: 1px solid #ead9b8; }
+    .band-green { background: var(--green-soft); color: var(--green); border: 1px solid #d7ebdf; }
+    .band-cyan { background: var(--blue-soft); color: var(--blue); border: 1px solid #d6e2f2; }
+
+    .briefing-box { background: #fdfbf7; border: 1px solid var(--line); border-radius: 16px; padding: 24px; margin-top: 24px; }
+    .briefing-box h3 { margin: 0 0 12px; font-size: 16px; color: var(--gold-1); }
+    .briefing-box p { margin: 0; font-size: 15px; color: #444; line-height: 1.7; }
+
+    .advice-list { margin: 24px 0 0; padding: 0; list-style: none; }
+    .advice-list li { 
+      position: relative; padding-left: 28px; margin-bottom: 16px; font-size: 15px; color: #333;
+    }
+    .advice-list li::before {
+      content: "→"; position: absolute; left: 0; color: var(--gold-2); font-weight: 800;
+    }
+
+    .cta-area { margin-top: 32px; display: flex; flex-direction: column; gap: 12px; }
+    .cta-area a { 
+      text-align: center; text-decoration: none; display: block; 
+    }
+
+    @media (max-width: 1080px) { .grid { grid-template-columns: 1fr; } .results { position: static; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="eyebrow">Strategic Evaluation</div>
+      <h1>The <span class="gold">Infrastructure Reality</span> Assessment</h1>
+      <p class="hero-copy">
+        Modernization fails when strategy outpaces structural capability. Evaluate your environment’s 
+        readiness for AI and high-velocity data migration based on the **Stabilize → Separate → Move → Govern** framework.
+      </p>
+    </section>
+
+    <div class="grid">
+      <div class="left-stack">
+        <section class="panel">
+          <div class="panel-head">
+            <h2>AI Readiness</h2>
+            <p class="panel-note">Determine if your data estate can support production-grade AI without compounding technical debt.</p>
+          </div>
+          <div class="panel-body">
+            <form id="ai-form">
+              <div class="question">
+                <p class="question-title">Core Data Definitions</p>
+                <p class="question-help">Do "Revenue" or "Customer" metrics mean the same thing across all business units?</p>
+                <div class="options">
+                  <div class="choice"><input type="radio" id="ai1-0" name="ai1" value="0"><label for="ai1-0">Inconsistent</label></div>
+                  <div class="choice"><input type="radio" id="ai1-1" name="ai1" value="1"><label for="ai1-1">Partially Aligned</label></div>
+                  <div class="choice"><input type="radio" id="ai1-2" name="ai1" value="2"><label for="ai1-2">Fully Standardized</label></div>
+                </div>
+              </div>
+
+              <div class="question">
+                <p class="question-title">Pipeline Reliability</p>
+                <p class="question-help">How often do data deliveries fail or require manual stabilization?</p>
+                <div class="options">
+                  <div class="choice"><input type="radio" id="ai2-0" name="ai2" value="0"><label for="ai2-0">Fragile</label></div>
+                  <div class="choice"><input type="radio" id="ai2-1" name="ai2" value="1"><label for="ai2-1">Mixed</label></div>
+                  <div class="choice"><input type="radio" id="ai2-2" name="ai2" value="2"><label for="ai2-2">Highly Stable</label></div>
+                </div>
+              </div>
+
+              <div class="question">
+                <p class="question-title">Governance Maturity</p>
+                <p class="question-help">Is there a clear record of data ownership and automated access control?</p>
+                <div class="options">
+                  <div class="choice"><input type="radio" id="ai3-0" name="ai3" value="0"><label for="ai3-0">Undefined</label></div>
+                  <div class="choice"><input type="radio" id="ai3-1" name="ai3" value="1"><label for="ai3-1">In Development</label></div>
+                  <div class="choice"><input type="radio" id="ai3-2" name="ai3" value="2"><label for="ai3-2">Automated</label></div>
+                </div>
+              </div>
+
+              <div class="question">
+                <p class="question-title">System Coupling</p>
+                <p class="question-help">Are analytical environments isolated from operational databases?</p>
+                <div class="options">
+                  <div class="choice"><input type="radio" id="ai4-0" name="ai4" value="0"><label for="ai4-0">Tightly Coupled</label></div>
+                  <div class="choice"><input type="radio" id="ai4-1" name="ai4" value="1"><label for="ai4-1">Partially Separate</label></div>
+                  <div class="choice"><input type="radio" id="ai4-2" name="ai4" value="2"><label for="ai4-2">Cleanly Decoupled</label></div>
+                </div>
+              </div>
+
+              <div class="question">
+                <p class="question-title">Operational Change Control</p>
+                <p class="question-help">Can you monitor, rollback, and audit model or data changes instantly?</p>
+                <div class="options">
+                  <div class="choice"><input type="radio" id="ai5-0" name="ai5" value="0"><label for="ai5-0">Manual/Weak</label></div>
+                  <div class="choice"><input type="radio" id="ai5-1" name="ai5" value="1"><label for="ai5-1">Developing</label></div>
+                  <div class="choice"><input type="radio" id="ai5-2" name="ai5" value="2"><label for="ai5-2">Enterprise-Grade</label></div>
+                </div>
+              </div>
+
+              <div style="margin-top: 32px; display: flex; gap: 12px;">
+                <button type="button" class="btn btn-primary" id="run-ai">Evaluate AI Readiness</button>
+                <button type="reset" class="btn btn-secondary">Reset</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>Operational Complexity</h2>
+            <p class="panel-note">Identify the structural friction that drives up your Annual Cost of Inaction.</p>
+          </div>
+          <div class="panel-body">
+            <form id="ops-form">
+              <div class="question">
+                <p class="question-title">System Fragmentation</p>
+                <p class="question-help">How many disparate systems contribute to core business reporting?</p>
+                <div class="options">
+                  <div class="choice"><input type="radio" id="ops1-0" name="ops1" value="0"><label for="ops1-0">Consolidated</label></div>
+                  <div class="choice"><input type="radio" id="ops1-1" name="ops1" value="1"><label for="ops1-1">Moderate (3-7)</label></div>
+                  <div class="choice"><input type="radio" id="ops1-2" name="ops1" value="2"><label for="ops1-2">High (10+)</label></div>
+                </div>
+              </div>
+
+              <div class="question">
+                <p class="question-title">Manual Intervention</p>
+                <p class="question-help">Reliance on spreadsheets or manual data cleansing to "fix" reporting.</p>
+                <div class="options">
+                  <div class="choice"><input type="radio" id="ops2-0" name="ops2" value="0"><label for="ops2-0">Low</label></div>
+                  <div class="choice"><input type="radio" id="ops2-1" name="ops2" value="1"><label for="ops2-1">Moderate</label></div>
+                  <div class="choice"><input type="radio" id="ops2-2" name="ops2" value="2"><label for="ops2-2">Critical Dependency</label></div>
+                </div>
+              </div>
+
+              <div class="question">
+                <p class="question-title">Definition Drift</p>
+                <p class="question-help">Frequency of debates regarding the "true" source of a number.</p>
+                <div class="options">
+                  <div class="choice"><input type="radio" id="ops3-0" name="ops3" value="0"><label for="ops3-0">Rarely</label></div>
+                  <div class="choice"><input type="radio" id="ops3-1" name="ops3" value="1"><label for="ops3-1">Occasionally</label></div>
+                  <div class="choice"><input type="radio" id="ops3-2" name="ops3" value="2"><label for="ops3-2">Constant</label></div>
+                </div>
+              </div>
+
+              <div class="question">
+                <p class="question-title">Cloud/On-Prem Balance</p>
+                <p class="question-help">Is the hybrid environment managed through a single plane or fragmented?</p>
+                <div class="options">
+                  <div class="choice"><input type="radio" id="ops4-0" name="ops4" value="0"><label for="ops4-0">Structured</label></div>
+                  <div class="choice"><input type="radio" id="ops4-1" name="ops4" value="1"><label for="ops4-1">Mixed/Organic</label></div>
+                  <div class="choice"><input type="radio" id="ops4-2" name="ops4" value="2"><label for="ops4-2">Highly Siloed</label></div>
+                </div>
+              </div>
+
+              <div class="question">
+                <p class="question-title">Change Velocity</p>
+                <p class="question-help">Average time to deploy a major architectural or schema change.</p>
+                <div class="options">
+                  <div class="choice"><input type="radio" id="ops5-0" name="ops5" value="0"><label for="ops5-0">Days/Weeks</label></div>
+                  <div class="choice"><input type="radio" id="ops5-1" name="ops5" value="1"><label for="ops5-1">Months</label></div>
+                  <div class="choice"><input type="radio" id="ops5-2" name="ops5" value="2"><label for="ops5-2">Quarters</label></div>
+                </div>
+              </div>
+
+              <div style="margin-top: 32px; display: flex; gap: 12px;">
+                <button type="button" class="btn btn-primary" id="run-ops">Evaluate Complexity</button>
+                <button type="reset" class="btn btn-secondary">Reset</button>
+              </div>
+            </form>
+          </div>
+        </section>
+      </div>
+
+      <aside class="results">
+        <section class="result-card">
+          <div class="result-top">
+            <div class="result-kicker">Diagnostic Result</div>
+            <h2 class="result-title" id="res-title">Awaiting Assessment</h2>
+          </div>
+          <div class="result-body">
+            <div class="gauge-box">
+              <div class="gauge">
+                <svg viewBox="0 0 120 120">
+                  <circle class="gauge-bg" cx="60" cy="60" r="54"></circle>
+                  <circle class="gauge-fill" id="gauge-fill" cx="60" cy="60" r="54" stroke="url(#g)"></circle>
+                  <defs>
+                    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stop-color="#8d6214"></stop>
+                      <stop offset="100%" stop-color="#efd890"></stop>
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <div class="gauge-center">
+                  <div class="gauge-number" id="res-score">--</div>
+                </div>
+              </div>
+            </div>
+
+            <div id="res-band" class="band band-cyan">Start with one assessment</div>
+            
+            <p id="res-summary" style="color: #444; font-size: 15px; line-height: 1.7; margin: 0;">
+              Please complete all five questions in either section to generate a strategic roadmap.
+            </p>
+
+            <div class="briefing-box">
+              <h3>Leadership Briefing</h3>
+              <p id="res-leadership">Once evaluated, this will reveal the immediate priority for executive focus.</p>
+            </div>
+
+            <ul class="advice-list" id="res-advice"></ul>
+
+            <div class="cta-area">
+              <a href="https://calendly.com/aarthiv18/30min" target="_blank" class="btn btn-primary">Book Architecture Review</a>
+              <button class="btn btn-secondary" id="copy-btn">Copy Strategic Summary</button>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+    const CIRC = 2 * Math.PI * 54;
+    const gauge = document.getElementById('gauge-fill');
+    
+    function setScore(percent) {
+      const offset = (percent / 100) * CIRC;
+      gauge.style.strokeDasharray = `${offset} ${CIRC}`;
+      document.getElementById('res-score').textContent = percent + '%';
+    }
+
+    function render(title, score, band, bandClass, summary, leadership, advice) {
+      document.getElementById('res-title').textContent = title;
+      setScore(score);
+      const b = document.getElementById('res-band');
+      b.className = 'band ' + bandClass;
+      b.textContent = band;
+      document.getElementById('res-summary').textContent = summary;
+      document.getElementById('res-leadership').textContent = leadership;
+      document.getElementById('res-advice').innerHTML = advice.map(a => `<li>${a}</li>`).join('');
+    }
+
+    function getScore(formId) {
+      const fd = new FormData(document.getElementById(formId));
+      let total = 0, count = 0;
+      for (let v of fd.values()) { total += Number(v); count++; }
+      return { total, count };
+    }
+
+    document.getElementById('run-ai').addEventListener('click', () => {
+      const { total, count } = getScore('ai-form');
+      if (count < 5) return alert("Please answer all 5 questions.");
+      const pct = Math.round((total / 10) * 100);
+
+      if (pct <= 40) {
+        render("AI Readiness", pct, "Priority: Stabilize & Separate", "band-red", 
+          "The environment carries high structural risk. Scaling AI now will compound your 'Cost of Inaction' through debt.",
+          "Leadership must treat stabilization as a prerequisite. AI initiatives should remain in isolated pilots.",
+          [
+            "**Stabilize:** Standardize core data definitions to prevent AI 'hallucinations'.",
+            "**Stabilize:** Secure pipeline reliability for a consistent model feed.",
+            "**Separate:** Decouple sandboxes from operational systems to protect stability."
+          ]);
+      } else if (pct <= 70) {
+        render("AI Readiness", pct, "Priority: Separate & Move", "band-amber", 
+          "The environment is capable, but 'Data Liquidity' is constrained by legacy silos.",
+          "Leadership can greenlight selective production, provided structural decoupling is funded.",
+          [
+            "**Separate:** Accelerate decoupling to reduce 'Inference Latency'.",
+            "**Move:** Target high-value use cases for modern cloud migration.",
+            "**Govern:** Initiate 'Governance Automation' now to ensure compliance at scale."
+          ]);
+      } else {
+        render("AI Readiness", pct, "Priority: Move & Govern", "band-green", 
+          "The environment is structurally sound. Focus on velocity and enterprise-wide adoption.",
+          "Leadership should pivot toward broad execution and competitive speed.",
+          [
+            "**Move:** Transition remaining legacy datasets into the modern architecture.",
+            "**Govern:** Scale automation to handle increased volume without manual overhead.",
+            "**Optimize:** Shift to cost-efficiency and performance tuning."
+          ]);
+      }
+    });
+
+    document.getElementById('run-ops').addEventListener('click', () => {
+      const { total, count } = getScore('ops-form');
+      if (count < 5) return alert("Please answer all 5 questions.");
+      const pct = Math.round((total / 10) * 100);
+
+      if (pct <= 30) {
+        render("Operational Complexity", pct, "Priority: Move & Govern", "band-green", 
+          "Low friction. You have a clean baseline for rapid modernization.",
+          "Leadership can focus on acceleration while structural resistance is minimal.",
+          [
+            "**Move:** Migrate complex workloads before organic growth creates new silos.",
+            "**Govern:** Implement automated guardrails to protect current discipline.",
+            "**Scale:** Focus on outcomes over basic infrastructure maintenance."
+          ]);
+      } else if (pct <= 70) {
+        render("Operational Complexity", pct, "Priority: Separate & Move", "band-amber", 
+          "Friction is impacting change velocity. You are at a tipping point for technical debt.",
+          "Leadership should expect modernizations to stall unless friction is addressed.",
+          [
+            "**Separate:** Identify and decouple tight coupling in legacy reporting.",
+            "**Separate:** Reduce reliance on undocumented manual adjustments.",
+            "**Move:** Target fragmented systems for early migration to simplify the estate."
+          ]);
+      } else {
+        render("Operational Complexity", pct, "Priority: Stabilize & Separate", "band-red", 
+          "High dependency is driving massive hidden costs. Modernization is currently high-risk.",
+          "Leadership must treat architectural control as the primary strategic goal.",
+          [
+            "**Stabilize:** Automate fragile pipelines that currently require manual fixes.",
+            "**Stabilize:** Re-establish 'Definition Trust' where business logic has drifted.",
+            "**Separate:** Create an immediate plan to decouple reporting from bottlenecks."
+          ]);
+      }
+    });
+
+    document.getElementById('copy-btn').addEventListener('click', () => {
+      const summary = `Diagnostic: ${document.getElementById('res-title').textContent}\nScore: ${document.getElementById('res-score').textContent}\nStatus: ${document.getElementById('res-band').textContent}\nSummary: ${document.getElementById('res-summary').textContent}`;
+      navigator.clipboard.writeText(summary).then(() => alert("Strategic Summary Copied"));
+    });
+
+    setScore(0);
+  </script>
+</body>
+</html>

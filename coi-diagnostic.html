@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Data Diagnostic | McKinsey-Level Strategic Tool</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #05070a;
+            --card: #0d1117;
+            --accent: #00d2ff;
+            --danger: #ff4b5c;
+            --success: #00f2ad;
+            --text: #f0f6fc;
+            --dim: #8b949e;
+            --border: #30363d;
+        }
+
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 40px 20px; line-height: 1.6; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        header { border-bottom: 1px solid var(--border); margin-bottom: 40px; padding-bottom: 20px; }
+        header h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -1.5px; }
+        header p { color: var(--dim); font-size: 1.1rem; }
+
+        .diagnostic-grid { display: grid; grid-template-columns: 420px 1fr; gap: 40px; }
+
+        /* Left Panel: Inputs & Guide */
+        .panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 30px; display: flex; flex-direction: column; gap: 25px; }
+        .panel h3 { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        
+        .control { margin-bottom: 10px; }
+        .control label { display: flex; justify-content: space-between; font-weight: 700; font-size: 0.85rem; margin-bottom: 12px; color: var(--text); }
+        .control span { color: var(--accent); font-family: monospace; }
+        
+        input[type="range"] { width: 100%; appearance: none; height: 4px; background: #21262d; border-radius: 5px; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; background: var(--accent); border-radius: 50%; cursor: pointer; border: 3px solid var(--bg); box-shadow: 0 0 10px var(--accent); }
+        
+        .slider-labels { display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--dim); margin-top: 8px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; }
+
+        /* Expert Guide Styling - Per Image Request */
+        .expert-guide { border-top: 1px solid var(--border); padding-top: 25px; margin-top: 10px; }
+        .expert-guide h4 { font-size: 0.9rem; color: var(--accent); margin-bottom: 20px; text-transform: uppercase; }
+        .guide-item { margin-bottom: 20px; }
+        .guide-item b { display: block; font-size: 1rem; color: var(--text); margin-bottom: 4px; }
+        .guide-item p { font-size: 0.85rem; color: var(--dim); margin: 0; line-height: 1.5; }
+
+        /* Right Panel: Analytics & Strategic Advice */
+        .analytics { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .metric-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 30px; position: relative; }
+        .full { grid-column: span 2; }
+        
+        .val { font-size: 3.5rem; font-weight: 800; line-height: 1; margin: 15px 0; }
+        
+        /* Financial Risk Section */
+        .coi-box { border: 1px solid rgba(255, 75, 92, 0.3); background: rgba(255, 75, 92, 0.02); }
+        .coi-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .coi-title { color: var(--danger); font-size: 0.8rem; font-weight: 800; text-transform: uppercase; }
+        .coi-definition { font-size: 0.75rem; color: var(--dim); max-width: 300px; text-align: right; font-style: italic; }
+        .coi-breakdown { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; border-top: 1px solid var(--border); padding-top: 20px; margin-top: 20px; }
+        .coi-item b { display: block; font-size: 0.7rem; color: var(--dim); text-transform: uppercase; margin-bottom: 5px; }
+        .coi-item span { font-family: monospace; font-weight: 700; color: var(--text); }
+
+        /* Strategic Commentary Box */
+        .advice-box { background: rgba(0, 210, 255, 0.03); border-left: 4px solid var(--accent); }
+        .advice-box h4 { color: var(--accent); margin-bottom: 12px; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; }
+        .advice-text { font-size: 0.95rem; color: var(--text); }
+        .strategy-tag { display: inline-block; margin-top: 15px; padding: 4px 12px; border: 1px solid var(--accent); border-radius: 4px; font-size: 0.75rem; font-weight: 800; color: var(--accent); text-transform: uppercase; }
+
+        .radar-wrap { text-align: center; }
+        
+        .cta { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, #0d1117, #1c2128); border: 1px solid var(--accent); padding: 35px; border-radius: 16px; margin-top: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+        .btn { background: var(--accent); color: var(--bg); padding: 18px 45px; border-radius: 8px; font-weight: 800; text-decoration: none; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; }
+        .btn:hover { box-shadow: 0 0 25px var(--accent); transform: translateY(-3px); }
+
+        @media (max-width: 1100px) { .diagnostic-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Modernization & COI Diagnostic</h1>
+        <p>A strategic audit of architectural liquidity, data velocity, and enterprise risk exposure.</p>
+    </header>
+
+    <div class="diagnostic-grid">
+        <div class="panel">
+            <h3>Diagnostic Parameters</h3>
+            
+            <div class="control">
+                <label>Data Silo Fragmentation <span id="s-val">5</span></label>
+                <input type="range" id="s-in" min="1" max="10" value="5">
+                <div class="slider-labels"><span>Unified Fabric</span><span>High Fragmentation</span></div>
+            </div>
+
+            <div class="control">
+                <label>Inference Latency <span id="l-val">4h</span></label>
+                <input type="range" id="l-in" min="1" max="24" value="4">
+                <div class="slider-labels"><span>Real-Time</span><span>Stale (24h+)</span></div>
+            </div>
+
+            <div class="control">
+                <label>Governance Automation <span id="g-val">20%</span></label>
+                <input type="range" id="g-in" min="0" max="100" value="20">
+                <div class="slider-labels"><span>Manual / Slow</span><span>Full Auto</span></div>
+            </div>
+
+            <div class="control">
+                <label>Cloud-Native Maturity <span id="c-val">30%</span></label>
+                <input type="range" id="c-in" min="0" max="100" value="30">
+                <div class="slider-labels"><span>On-Premise</span><span>Cloud Native</span></div>
+            </div>
+
+            <div class="expert-guide">
+                <h4>Expert Guide</h4>
+                <div class="guide-item">
+                    <b>Data Liquidity:</b>
+                    <p>The speed at which data can be converted into business value.</p>
+                </div>
+                <div class="guide-item">
+                    <b>Fragmentation:</b>
+                    <p>The degree of data isolation across disconnected legacy systems.</p>
+                </div>
+                <div class="guide-item">
+                    <b>Governance Automation:</b>
+                    <p>Programmatic enforcement of security and policy, replacing manual human oversight.</p>
+                </div>
+                <div class="guide-item">
+                    <b>Inference Latency:</b>
+                    <p>The time lag between a data event and an actionable business insight.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="analytics">
+            <div class="metric-card">
+                <h3>Data Liquidity Index</h3>
+                <div class="val" id="res-liq" style="color: var(--accent);">0</div>
+                <div id="liq-status" style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">Determining Posture...</div>
+            </div>
+
+            <div class="metric-card">
+                <h3>AI Capability Score</h3>
+                <div class="val" id="res-ai">0%</div>
+                <div style="height: 6px; background: #21262d; border-radius: 3px; overflow: hidden;">
+                    <div id="ai-bar" style="height: 100%; background: var(--accent); width: 0%; transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);"></div>
+                </div>
+            </div>
+
+            <div class="metric-card full coi-box">
+                <div class="coi-header">
+                    <div class="coi-title">Estimated Annual Cost of Inaction (COI)</div>
+                    <div class="coi-definition">Business capital lost annually due to architectural friction and operational lag.</div>
+                </div>
+                <div class="val" id="res-coi" style="color: var(--danger);">$0</div>
+                <div class="coi-breakdown">
+                    <div class="coi-item"><b>Agility Tax</b><span id="coi-1">$0</span></div>
+                    <div class="coi-item"><b>Operational Risk</b><span id="coi-2">$0</span></div>
+                    <div class="coi-item"><b>Opportunity Cost</b><span id="coi-3">$0</span></div>
+                </div>
+                <p style="font-size: 0.7rem; color: var(--dim); margin-top: 15px; border-top: 1px solid var(--border); padding-top: 10px;">*NOT a professional service fee. Figures represent industrial benchmarks for missed market cap and maintenance waste.</p>
+            </div>
+
+            <div class="metric-card radar-wrap">
+                <h3 style="margin-bottom: 25px;">Equilibrium Heatmap</h3>
+                <div style="width: 320px; height: 320px; margin: 0 auto;">
+                    <canvas id="maturityRadar"></canvas>
+                </div>
+                <p style="font-size: 0.75rem; color: var(--dim); margin-top: 20px;">Surface area indicates effective data liquidity.</p>
+            </div>
+
+            <div class="metric-card advice-box">
+                <h4>Strategic Commentary</h4>
+                <div class="advice-text" id="advice-summary">Adjust diagnostic parameters to generate executive summary.</div>
+                <div class="strategy-tag" id="strategy-label">Analyze First</div>
+            </div>
+
+            <div class="cta full">
+                <div>
+                    <h3 style="margin-bottom: 5px; font-size: 1.4rem;">Initiate Strategic Audit</h3>
+                    <p style="font-size: 0.9rem; color: var(--dim);">Discuss a vendor-neutral roadmap to stop capital bleed.</p>
+                </div>
+                <a href="https://calendly.com/aarthiv18/30min" target="_blank" class="btn">Book Strategy Session</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const ctx = document.getElementById('maturityRadar').getContext('2d');
+    let chart;
+
+    function initChart() {
+        chart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: ['Liquidity', 'Freshness', 'Governance', 'Cloud', 'AI Potential', 'Risk Buffer'],
+                datasets: [{
+                    data: [0, 0, 0, 0, 0, 0],
+                    backgroundColor: 'rgba(0, 210, 255, 0.15)',
+                    borderColor: '#00d2ff',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#00d2ff'
+                }]
+            },
+            options: {
+                scales: {
+                    r: { grid: { color: '#30363d' }, angleLines: { color: '#30363d' }, ticks: { display: false }, suggestedMin: 0, suggestedMax: 100, pointLabels: { color: '#8b949e', font: { size: 10, weight: '700' } } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    function calculate() {
+        const s = parseInt(document.getElementById('s-in').value);
+        const l = parseInt(document.getElementById('l-in').value);
+        const g = parseInt(document.getElementById('g-in').value);
+        const c = parseInt(document.getElementById('c-in').value);
+
+        // Labels
+        document.getElementById('s-val').innerText = s;
+        document.getElementById('l-val').innerText = l + 'h';
+        document.getElementById('g-val').innerText = g + '%';
+        document.getElementById('c-val').innerText = c + '%';
+
+        // Calculation Grounding - Based on $75k benchmark in calc.pdf [cite: 33]
+        const liq = Math.round(((11 - s) * 7.5) + (c * 0.25));
+        const ai = Math.round((c * 0.45) + (g * 0.3) + ((25 - l) * 1.1));
+        const safety = Math.round(((11 - s) * 5) + (g * 0.5));
+
+        // COI Transparency Breakdown
+        const waste = (s * 9200) + (l * 1150);
+        const riskVal = (100 - g) * 420;
+        const oppCost = (100 - Math.min(ai, 100)) * 580;
+        const totalCOI = waste + riskVal + oppCost;
+
+        // UI Updates
+        document.getElementById('res-liq').innerText = liq;
+        document.getElementById('res-ai').innerText = Math.min(ai, 100) + '%';
+        document.getElementById('ai-bar').style.width = Math.min(ai, 100) + '%';
+        document.getElementById('res-coi').innerText = `$${Math.round(totalCOI).toLocaleString()}`;
+        document.getElementById('coi-1').innerText = `$${Math.round(waste).toLocaleString()}`;
+        document.getElementById('coi-2').innerText = `$${Math.round(riskVal).toLocaleString()}`;
+        document.getElementById('coi-3').innerText = `$${Math.round(oppCost).toLocaleString()}`;
+
+        // Strategic Commentary Engine 
+        const advSum = document.getElementById('advice-summary');
+        const advTag = document.getElementById('strategy-label');
+        const liqTag = document.getElementById('liq-status');
+
+        if(liq > 75) {
+            liqTag.innerText = "Elite Liquidity";
+            advSum.innerText = "Your architecture supports aggressive AI innovation. With technical debt under 20%, you should focus on high-ROI use case discovery and cross-functional execution.";
+            advTag.innerText = "Strategy: Market Acceleration";
+        } else if (liq > 45) {
+            liqTag.innerText = "Modernizing Posture";
+            advSum.innerText = "Legacy fragmentation is currently capping your ROI. We recommend accelerating governance automation to reduce operational friction and unlock 30% more data velocity.";
+            advTag.innerText = "Strategy: Target Refactoring";
+        } else {
+            liqTag.innerText = "Legacy Deadlock";
+            advSum.innerText = "Critical Warning: Fragmented systems are currently costing more than modernization. Immediate strategic audit is advised to stop capital bleed from inefficient data silos.";
+            advTag.innerText = "Strategy: Debt Reduction";
+        }
+
+        // Radar Update
+        chart.data.datasets[0].data = [liq, (25-l)*4, g, c, Math.min(ai, 100), safety];
+        chart.update();
+    }
+
+    // Event Listeners
+    ['s-in', 'l-in', 'g-in', 'c-in'].forEach(id => document.getElementById(id).addEventListener('input', calculate));
+    initChart();
+    calculate();
+</script>
+</body>
+</html>
